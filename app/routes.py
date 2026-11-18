@@ -6,7 +6,10 @@ from uuid import uuid4
 from app.database import get_db
 from app.models import User
 from app.schemas import UserRegister
-from app.auth import hash_password
+from app.auth import (
+    hash_password,
+    verify_password
+)
 
 router = APIRouter()
 
@@ -41,4 +44,34 @@ def register(
 
     return {
         "message": "User created"
+    }
+
+from app.schemas import UserLogin
+
+
+@router.post("/login")
+def login(
+    user: UserLogin,
+    db: Session = Depends(get_db)
+):
+
+    existing_user = db.query(User).filter(
+        User.email == user.email
+    ).first()
+
+    if not existing_user:
+        return {
+            "error": "User not found"
+        }
+
+    if not verify_password(
+        user.password,
+        existing_user.password_hash
+    ):
+        return {
+            "error": "Invalid password"
+        }
+
+    return {
+        "message": "Login successful"
     }
