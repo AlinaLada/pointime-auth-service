@@ -184,3 +184,10 @@ def get_profile(
         "bio": profile.bio,
         "phone": profile.phone
     }
+
+@router.post("/logout")
+def logout():
+
+    return {
+        "message": "Logout successful"
+    }
