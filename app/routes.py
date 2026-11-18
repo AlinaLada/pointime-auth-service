@@ -8,7 +8,8 @@ from app.models import User
 from app.schemas import UserRegister
 from app.auth import (
     hash_password,
-    verify_password
+    verify_password,
+    create_access_token
 )
 
 router = APIRouter()
@@ -72,6 +73,15 @@ def login(
             "error": "Invalid password"
         }
 
+
+    token = create_access_token(
+        {
+            "sub": existing_user.email
+        }
+    )
+    
+
     return {
-        "message": "Login successful"
+        "access_token": token,
+        "token_type": "bearer"
     }
