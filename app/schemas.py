@@ -17,4 +17,8 @@ class UserResponse(BaseModel):
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
-    
+
+
+class ProfileUpdate(BaseModel):
+    bio: str
+    phone: str

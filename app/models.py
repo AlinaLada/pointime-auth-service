@@ -24,3 +24,21 @@ class User(Base):
         DateTime,
         server_default=func.now()
     )
+
+class Profile(Base):
+    __tablename__ = "profiles"
+
+    id = Column(
+        UUID(as_uuid=True),
+        primary_key=True
+    )
+
+    user_id = Column(
+        UUID(as_uuid=True),
+        unique=True,
+        nullable=False
+    )
+
+    bio = Column(Text)
+
+    phone = Column(String(50))

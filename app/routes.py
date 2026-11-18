@@ -9,6 +9,7 @@ from fastapi.security import HTTPAuthorizationCredentials
 
 from app.database import get_db
 from app.models import User
+from app.models import Profile
 from app.schemas import UserRegister
 from app.auth import (
     hash_password,
@@ -54,7 +55,7 @@ def register(
     }
 
 from app.schemas import UserLogin
-
+from app.schemas import ProfileUpdate
 
 @router.post("/login")
 def login(
@@ -109,4 +110,77 @@ def get_me(
 
     return {
         "email": payload["sub"]
+    }
+
+@router.put("/profile")
+def update_profile(
+    profile_data: ProfileUpdate,
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db)
+):
+
+    token = credentials.credentials
+
+    payload = verify_token(token)
+
+    email = payload["sub"]
+
+    user = db.query(User).filter(
+        User.email == email
+    ).first()
+
+    profile = db.query(Profile).filter(
+        Profile.user_id == user.id
+    ).first()
+
+    if not profile:
+
+        profile = Profile(
+            id=uuid4(),
+            user_id=user.id,
+            bio=profile_data.bio,
+            phone=profile_data.phone
+        )
+
+        db.add(profile)
+
+    else:
+
+        profile.bio = profile_data.bio
+        profile.phone = profile_data.phone
+
+    db.commit()
+
+    return {
+        "message": "Profile updated"
+    }
+
+@router.get("/profile")
+def get_profile(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db)
+):
+
+    token = credentials.credentials
+
+    payload = verify_token(token)
+
+    email = payload["sub"]
+
+    user = db.query(User).filter(
+        User.email == email
+    ).first()
+
+    profile = db.query(Profile).filter(
+        Profile.user_id == user.id
+    ).first()
+
+    if not profile:
+        return {
+            "message": "Profile not found"
+        }
+
+    return {
+        "bio": profile.bio,
+        "phone": profile.phone
     }
