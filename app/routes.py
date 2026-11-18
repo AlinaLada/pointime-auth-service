@@ -1,7 +1,11 @@
 from fastapi import APIRouter
 from fastapi import Depends
+from fastapi import Header
 from sqlalchemy.orm import Session
 from uuid import uuid4
+
+from fastapi.security import HTTPBearer
+from fastapi.security import HTTPAuthorizationCredentials
 
 from app.database import get_db
 from app.models import User
@@ -9,11 +13,13 @@ from app.schemas import UserRegister
 from app.auth import (
     hash_password,
     verify_password,
-    create_access_token
+    create_access_token,
+    verify_token
 )
 
 router = APIRouter()
 
+security = HTTPBearer()
 
 @router.post("/register")
 def register(
@@ -84,4 +90,23 @@ def login(
     return {
         "access_token": token,
         "token_type": "bearer"
+    }
+
+
+@router.get("/me")
+def get_me(
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+
+    token = credentials.credentials
+
+    payload = verify_token(token)
+
+    if not payload:
+        return {
+            "error": "Invalid token"
+        }
+
+    return {
+        "email": payload["sub"]
     }
